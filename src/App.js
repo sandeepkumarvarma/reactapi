@@ -1,25 +1,77 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import data from './data.json';
 
-function App() {
+const RewardPoints = () => {
+  const [transactions, setTransactions] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setTransactions(data.transactions);
+    };
+
+    fetchData();
+  }, []);
+
+  const calculatePoints = (amount) => {
+    let points = 0;
+
+    if (amount > 100) {
+      points += (amount - 100) * 2;
+    }
+
+    if (amount > 50 && amount <= 100) {
+      points += (amount - 50) * 1;
+    }
+
+    return points;
+  };
+
+  const calculateMonthlyPoints = (transactions) => {
+    const monthlyPoints = {};
+
+    transactions.forEach((transaction) => {
+      const date = new Date(transaction.date);
+      const month = date.getMonth();
+      const year = date.getFullYear();
+      const transactionAmount = transaction.amount;
+
+      const key = `${year}-${month}`;
+
+      if (!monthlyPoints[key]) {
+        monthlyPoints[key] = 0;
+      }
+
+      monthlyPoints[key] += calculatePoints(transactionAmount);
+    });
+
+    return monthlyPoints;
+  };
+
+  const calculateTotalPoints = (transactions) => {
+    let totalPoints = 0;
+
+    transactions.forEach((transaction) => {
+      totalPoints += calculatePoints(transaction.amount);
+    });
+
+    return totalPoints;
+  };
+
+  const monthlyPoints = calculateMonthlyPoints(transactions);
+  const totalPoints = calculateTotalPoints(transactions);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
+    <div>
+      <h2>Monthly Points</h2>
+      {Object.keys(monthlyPoints).map((key) => (
+        <p key={key}>
+          {key}: {monthlyPoints[key]} points
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      ))}
+      <h2>Total Points</h2>
+      <p>{totalPoints} points</p>
     </div>
   );
-}
+};
 
-export default App;
+export default RewardPoints;
